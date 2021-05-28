@@ -1,4 +1,3 @@
-256 toreno 750.5 0
-943 am2k 1012.3 1
-
-359 ajdin 2775.00 0
+ID	Username	Iznos(KM)	Placeno
+155	toreno		7344.83		1
+171	toreno		9963.3		1
