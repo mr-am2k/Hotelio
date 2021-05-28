@@ -1,16 +1,16 @@
 /*||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||							    								||
-||		Naziv projekta: Hotelio			    					||
-||		Zavrsni projekat iz predmeta:	       	    			||
-||		Napredne tehnike programiranja              			||
-||		Mentor: v. as. mr. Edin Tabak		    				||
-||			Autori:		 		    							||
-||				Muamer Alickovic            					||
-||				Ajdin Bukvic	            					||
-||				Emir Zambakovic             					||
-||							    								||
-|| 			� 2021                                             ||
-||							    								||		
+||							    	||
+||		Naziv projekta: Hotelio			    	||
+||		Zavrsni projekat iz predmeta:	       	    	||
+||		Napredne tehnike programiranja              	||
+||		Mentor: v. as. mr. Edin Tabak		    	||
+||			Autori:		 		    	||
+||				Muamer Alickovic            	||
+||				Ajdin Bukvic	            	||
+||				Emir Zambakovic             	||
+||							    	||
+|| 			© 2021                                 	||
+||							    	||		
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||*/
 
 //-------------------- >>> BIBLIOTEKE <<< ---------------------
@@ -34,7 +34,7 @@ using namespace std;
 const string adminUsername="admin";//postavljamo globalno username za admina
 const string adminPassword="admin";//postavljamo globalno sifru za admina 
 //-------------------- >>> GLOBALNE VARIJABLE <<< ---------------------
-
+string linijaInfo; //sluzi sa smjestanje privremeno smjestanje prve linije iz neke datoteke
 //-------------------- >>> SPISAK FUNKCIJA <<< ---------------------
 //kako bi izbjegli preveliko uredjivanje koda, zbog potrebe za koristenjem funkcije u strukturi,ove tri funkcije smo definisali na samom pocetku, jer one ne zahtjevaju nikakve posebne elemente, a potrebene su
 //za ralizaciju funkcije dodaj_radnika() u strukturi radnik
@@ -78,7 +78,7 @@ struct Soba{
     velicinaSobe velicina;
     float cijena;
     int brojSobe;
-    bool slobodna;
+    bool zauzeta;
 };
 
 //struktura datum
@@ -101,7 +101,7 @@ struct Radnik{
     string ime;
     string prezime;
     pozicijaRadnika pozicija;
-    double plata;
+    float plata;
 
 	//funkcija koja sluzi za dodavanje novih radnika u datoteku
 	void dodaj_radnika(){
@@ -123,6 +123,12 @@ struct Radnik{
 			cout<<"Dostupne pozicije: \n1 - Recepcioner\n2 - Cistac\n3 - Konobar\n4 - Menadzer\n5 - Trener\n";
 			cout<<"Unesite poziciju radnika: ";
 			cin>>pozicija_unos;
+			if(!cin){
+				cin.clear();
+				cin.ignore(100, '\n');
+				poruka(3);
+				return;
+			}
 			if(pozicija_unos < 1 || pozicija_unos > 5)
 			poruka(3);
 		}
@@ -131,13 +137,24 @@ struct Radnik{
 		do{
 			cout<<"Unesite platu radnika: ";
 			cin>>r->plata;
+			if(!cin){
+				cin.clear();
+				cin.ignore(100, '\n');
+				poruka(3);
+				return;
+			}
 			if(r->plata < 100 || r->plata > 2000){
 				poruka(3);
 				cout<<"Samo u intervalu 100 - 2000 KM"<<endl;
 			}
 		}
 		while(r->plata < 100 || r->plata > 2000);
-		izlaz << rb << " " << r->ime << " " << r->prezime << " " << r->pozicija << " " << r->plata << endl;
+		izlaz << rb << "\t";
+		if(r->ime.size() >= 8) izlaz << r->ime << "\t";
+		else izlaz << r->ime << "\t\t";
+		if(r->prezime.size() >= 8) izlaz << r->prezime << "\t";
+		else izlaz << r->prezime << "\t\t";
+		izlaz << r->pozicija << "\t\t" << r->plata << endl;
 		poruka(1);
 		cout<<"Novi radnik je uspjesno dodan u datoteku radnici.txt..."<<endl;	
 		izlaz.close();
@@ -186,26 +203,29 @@ void prihvati_odbij_rezervaciju();
 void azuriraj_rezervacije(Rezervacija*,int,int,int);
 void promijeni_stanje_sobe(Soba*,int,int);
 void pretrazi_sobe();
+void ispis_dodatnih_aktivnosti();
 void uredi_cjenovnik();
 void azuriraj_sobe(Soba*,int,int,float);
 void izdaj_racun();
 int izracunaj_dane(Datum*,Datum*);
 float izracunaj_popust(float,int); //REKURZIVNA FUNKCIJA
-bool prestupna(int); //-------------
+bool prestupna(int); 
 void pregled_racuna();
 void stanje_hotela();
 void dodaj_radnika();
 void isplati_plate();
+bool kod_provjera(int);
+bool id_provjera(int);
 int korisnikMenu();
 void hotelInfo();
 void pregledSlobodnihSoba();
 void rezervacijaSobe(string);
 bool provjera_datuma(Datum*);
-bool provjeraDatuma2(Datum*, Datum*);
+bool provjeraDatuma2(Datum*,Datum*);
 void rezervacijaDodatnihAktivnosti(string);
 void platiRacun(string);
-void brisanjeRezervacije(Rezervacija*, int, int);
-void aktivnostBrisanje(dodatneAktivnosti*, int, string);
+void brisanjeRezervacije(Rezervacija*,int,int);
+void aktivnostBrisanje(dodatneAktivnosti*,int,string);
 //-------------------- >>> MAIN FUNKCIJA <<< ---------------------
 
 int main() {
@@ -290,31 +310,36 @@ int main() {
 							}
 							case 4: {
 								system("cls");
-								uredi_cjenovnik();
+								ispis_dodatnih_aktivnosti();
 								break;
 							}
 							case 5: {
 								system("cls");
-								izdaj_racun();
+								uredi_cjenovnik();
 								break;
 							}
 							case 6: {
 								system("cls");
-								pregled_racuna();
+								izdaj_racun();
 								break;
 							}
 							case 7: {
 								system("cls");
-								stanje_hotela();
+								pregled_racuna();
 								break;
 							}
 							case 8: {
+								system("cls");
+								stanje_hotela();
+								break;
+							}
+							case 9: {
 								system("cls");
 								Radnik r;
 								r.dodaj_radnika();
 								break;
 							}
-							case 9: {
+							case 10: {
 								system("cls");
 								isplati_plate();
 								break;
@@ -415,6 +440,8 @@ void registracija() {
 	ifstream ulaz1("listaKorisnika.txt");
 	if(ulaz1.is_open()){
 		Korisnik temp;
+		linijaInfo.clear();
+		getline(ulaz1, linijaInfo);
 		while(ulaz1>>temp.ime>>temp.prezime>>temp.spol>>temp.username>>temp.password){
 			korisnici[pomocnaVarijabla++]=temp;
 		}
@@ -455,7 +482,8 @@ void registracija() {
 		for (int i=1; i<pomDuzina; i++) { //ostala slova prebacujemo u mala
 			k->ime[i]=tolower(k->ime[i]);
 		}
-		unos<<k->ime<<" ";
+		if(k->ime.size() >= 8) unos<<k->ime<<"\t";
+		else unos<<k->ime<<"\t\t";
 		br=0; //postavljamo brojac na 0, jer cemo imati jos provjera prilikom unosa gdje ce nam biti potreban brojac, a ne zelimo koristiti nove varijable zbog memorije
 		//osiguravamo ispravan unos prezimena
 		do {
@@ -482,7 +510,8 @@ void registracija() {
 		for (int i=1; i<pomDuzina; i++) {
 			k->prezime[i]=tolower(k->prezime[i]);
 		}
-		unos<<k->prezime<<" ";
+		if(k->prezime.size() >= 8) unos<<k->prezime<<"\t";
+		else unos<<k->prezime<<"\t\t";
 		br=0;
 		//unos spola
 		do {
@@ -499,7 +528,7 @@ void registracija() {
 			cin>>k->spol;
 			br++;
 		} while(k->spol!="muski" && k->spol!="zenski");
-		unos<<k->spol<<" ";
+		unos<<k->spol<<"\t";
 		//unos username-a
 		do{
 			int izlaz=0;
@@ -522,7 +551,8 @@ void registracija() {
 			}
 			if(izlaz==0) break;
 		}while(1);
-		unos<<k->username<<" ";
+		if(k->username.size() >= 8) unos<<k->username<<"\t";
+		else unos<<k->username<<"\t\t";
 		//unos sifre(password-a)
 		br=8;
 		do {
@@ -560,14 +590,14 @@ int prebroj_clanove(string naziv_datoteke) {
 	ifstream ulaz(naziv_datoteke);
 	if (ulaz.is_open()) {
 		while(getline(ulaz, linija)) {
-			brojac++;
+			brojac++; //za svaku liniju u datoteci se povecava brojac
 		}
 		ulaz.close();
 	} else {
 		poruka(5);
 		return 0;
 	}
-	return brojac;
+	return brojac - 1; //funkcija vraca jednu liniju manje jer je prva linija svake datoteke rezervisana za informacije
 }
 
 //funkcija za prijavu u sistem (prijavu korisnika)
@@ -580,6 +610,8 @@ void prijava(string& korisnickoIme, string& sifra, bool& ispravnost) {
 	ifstream noviUlaz("listaKorisnika.txt"); //otvaramo datoteku drugi put kako bi kopirali elemenete u niz
 	if (noviUlaz.is_open()) {
 		Korisnik temp;
+		linijaInfo.clear();
+		getline(noviUlaz, linijaInfo);
 		while(noviUlaz>>temp.ime>>temp.prezime>>temp.spol>>temp.username>>temp.password) {
 			korisnici[broj]=temp;
 			broj++;
@@ -713,15 +745,15 @@ void adminPrijava(bool& ispravnost) {
 string skrivena_sifra(string sifra, char znak) {
 	sifra.clear();
 	while(znak = getch()){
-  		if(znak == 13) {
+  		if(znak == 13) { //ako se pritisne enter vraca unesenu sifru
             return sifra;
         }
-        else if(znak == 8 && sifra.size() != 0) {
-            sifra.erase(sifra.size() - 1);
-  			cout<<"\b \b";
+        else if(znak == 8 && sifra.size() != 0) { //ako se pritisne backspace brise zadnji karakter
+            sifra.erase(sifra.size() - 1); 
+  			cout<<"\b \b"; //unos se vraca za jedno mjesto unazad
   			continue;
         }
-  		else if(znak == 8 && sifra.size() == 0) {
+  		else if(znak == 8 && sifra.size() == 0) { //ako se pritisne backspace kad nema nikakvog unosa
             continue;
         }
   		sifra += znak;
@@ -738,12 +770,13 @@ int admin_menu() {
 	cout << "\t\t1. Prikazi rezervacije\n";
 	cout << "\t\t2. Prihvati / odbaci rezervaciju\n";
 	cout << "\t\t3. Pretrazi sobe po kriterijima\n";
-	cout << "\t\t4. Uredi cjenovnik\n";
-	cout << "\t\t5. Izdaj racun\n";
-	cout << "\t\t6. Pregled svih racuna\n";
-	cout << "\t\t7. Informacije / stanje hotela\n";
-	cout << "\t\t8. Dodaj radnika\n";
-	cout << "\t\t9. Isplati plate radnicima\n";
+	cout << "\t\t4. Dodatne aktivnosti korisnika\n";
+	cout << "\t\t5. Uredi cjenovnik\n";
+	cout << "\t\t6. Izdaj racun\n";
+	cout << "\t\t7. Pregled svih racuna\n";
+	cout << "\t\t8. Informacije / stanje hotela\n";
+	cout << "\t\t9. Dodaj radnika\n";
+	cout << "\t\t10. Isplati plate radnicima\n";
 	cout << "\t\t0. Odjava\n";
 	poruka(1);
 	int opcija;
@@ -764,7 +797,7 @@ void prikazi_rezervacije(){
 	string temp;
 	int br_rezervacija = prebroj_clanove("rezervacije.txt");
 	if(br_rezervacija == 0){
-		cout<<"Trenutno nema aktivnih rezervacija!"<<endl;
+		cout<<"Trenutno nema aktivnih rezervacija!"<<endl; //izlazi iz funkcije ako nema nijedne rezervacije
 		return;
 	}
 	cout<<"-----------------------------------------------------------------------------------------\n";
@@ -772,15 +805,17 @@ void prikazi_rezervacije(){
 	cout<<"-----------------------------------------------------------------------------------------\n";
 	ifstream ulaz("rezervacije.txt");
 	if(ulaz.is_open()){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
 		while(ulaz >> r->kod >> r->broj_sobe >> r->username >> r->datumPrijave.dan >> r->datumPrijave.mjesec >> r->datumPrijave.godina
 			>> r->datumOdjave.dan >> r->datumOdjave.mjesec >> r->datumOdjave.godina >> broj){
 			if(broj == 0) temp = "Cekanje";
 			else temp = "Prihvaceno";
-			string tacka=".";
-			stringstream dP;
+			string tacka="."; 
+			stringstream dP;	//formatiranje datuma u obliku d.m.g
 			dP<<r->datumPrijave.dan<<tacka<<r->datumPrijave.mjesec<<tacka<<r->datumPrijave.godina;
 			string datumPrijave=dP.str();
-			stringstream dO;
+			stringstream dO;	//formatiranje datuma u obliku d.m.g
 			dO<<r->datumOdjave.dan<<tacka<<r->datumOdjave.mjesec<<tacka<<r->datumOdjave.godina;
 			string datumOdjave=dO.str();
 			cout<<left<<setw(8)<<r->kod<<setw(15)<<r->broj_sobe<<setw(15)<<r->username<<setw(20)<<datumPrijave<<setw(20)<<datumOdjave<<setw(15)<<temp<<endl;
@@ -802,34 +837,48 @@ void prihvati_odbij_rezervaciju(){
 	int stanje;
 	int br = 0;
 	int pozicija;
-	int soba;
+	int soba = -1;
 	bool postoji = false;
 	int br_rezervacija = prebroj_clanove("rezervacije.txt");
 	if(br_rezervacija == 0){
-		cout<<"Trenutno nema aktivnih rezervacija!"<<endl;
+		cout<<"Trenutno nema aktivnih rezervacija!"<<endl; //izlazi iz funkcije ako nema nijedne rezervacije
 		return;
 	}
 	Rezervacija *niz = new Rezervacija[br_rezervacija];
 	cout<<"Unesite kod rezervacije koju zelite prihvatiti / odbiti: ";
 	cin>>unos;
+	if(!cin){
+		cin.clear();
+		cin.ignore(100, '\n');
+		poruka(3);
+		return;
+	}
 	do{
 		cout<<"1 - PRIHVATANJE | 2 - ODBIJANJE : ";
 		cin>>izbor;
+		if(!cin){
+			cin.clear();
+			cin.ignore(100, '\n');
+			poruka(3);
+			return;
+		}
 	}
 	while(izbor < 1 || izbor > 2);	
 	ifstream ulaz("rezervacije.txt");
 	if(ulaz.is_open()){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
 		while(ulaz >> r->kod >> r->broj_sobe >> r->username >> r->datumPrijave.dan >> r->datumPrijave.mjesec >> r->datumPrijave.godina
 			>> r->datumOdjave.dan >> r->datumOdjave.mjesec >> r->datumOdjave.godina >> stanje){
 			if(stanje == 0) r->stanje = cekanje;
 			else r->stanje = prihvaceno;
-			niz[br] = *r;
+			niz[br] = *r; //sve rezervacije iz datoteke se smjestaju u niz
 			br++;
-			if(unos == r->kod){
+			if(unos == r->kod){ //kada se pronadje rezervacija koja odgovara unesenom kodu
 				postoji = true;
 				if(izbor == 1 && r->stanje == cekanje){
 					cout<<"Uspjesno ste prihvatili rezervaciju!"<<endl;
-					soba = r->broj_sobe;
+					soba = r->broj_sobe; //smjestanje broja sobe kod kojeg ce se trebati izmijeniti stanje na "zauzeto"
 				}
 				else if(izbor == 2 && r->stanje == cekanje){
 					cout<<"Uspjesno ste odbili rezervaciju!"<<endl;
@@ -838,16 +887,16 @@ void prihvati_odbij_rezervaciju(){
 					cout<<"Ova rezervacija je vec prihvacena!"<<endl;
 					return;
 				}
-				pozicija = br-1;
+				pozicija = br-1; //odredjivanje pozicije rezervacije koju treba prihvatiti / odbiti
 			}
 		}
 		ulaz.close();
 		if(!postoji){
-			cout<<"Ne postoji uneseni kod rezervacije!"<<endl;
+			cout<<"Ne postoji uneseni kod rezervacije!"<<endl; //ako nijedna rezervacija ne odgovara unesenom kodu izlazi se iz funkcije
 			return;
 		}
 		else{
-		azuriraj_rezervacije(niz, br_rezervacija, pozicija, izbor);
+		azuriraj_rezervacije(niz, br_rezervacija, pozicija, izbor); //poziv funkcije koja mijenja stanje odabrane rezervacije
 		}
 		delete r;
 		delete[] niz;	
@@ -856,33 +905,37 @@ void prihvati_odbij_rezervaciju(){
 		poruka(5);
 		return;
 	}
-	int br_soba = prebroj_clanove("sobe.txt");
-	Soba *s = new Soba;
-	Soba *sobe_niz = new Soba[br_soba];
-	int soba_brojac = 0;
-	int velicina_broj;
-	int pozicija_soba;
-	ifstream ulaz2("sobe.txt");
-	if(ulaz2.is_open()){
-		while(ulaz2 >> s->brojSobe >> s->cijena >> velicina_broj >> s->slobodna){
-			if(velicina_broj == 1) s->velicina = jednokrevetna;
-			else if(velicina_broj == 2) s->velicina = dvokrevetna;
-			else if(velicina_broj == 3) s->velicina = trokrevetna;
-			else s->velicina = predsjednickiApartman;
-			sobe_niz[soba_brojac] = *s;
-			soba_brojac++;
-			if(soba == s->brojSobe){
-				pozicija_soba = soba_brojac-1;
+	if(soba != -1){ //ako se rezervacija odbije, pomocna varijabla soba ce ostati na vrijednosti -1, te nema potrebe da se mijenja stanje sobe
+		int br_soba = prebroj_clanove("sobe.txt");
+		Soba *s = new Soba;
+		Soba *sobe_niz = new Soba[br_soba];
+		int soba_brojac = 0;
+		int velicina_broj;
+		int pozicija_soba;
+		ifstream ulaz2("sobe.txt");
+		if(ulaz2.is_open()){
+			linijaInfo.clear();
+			getline(ulaz2, linijaInfo);
+			while(ulaz2 >> s->brojSobe >> s->cijena >> velicina_broj >> s->zauzeta){
+				if(velicina_broj == 1) s->velicina = jednokrevetna;
+				else if(velicina_broj == 2) s->velicina = dvokrevetna;
+				else if(velicina_broj == 3) s->velicina = trokrevetna;
+				else s->velicina = predsjednickiApartman;
+				sobe_niz[soba_brojac] = *s; //sve sobe iz datoteke se smjestaju u niz
+				soba_brojac++;
+				if(soba == s->brojSobe){ //kada se pronadje broj sobe koji odgovara broju iz pomocne varijable
+					pozicija_soba = soba_brojac-1; //odredjivanje pozicije sobe koju treba zauzeti
+				}
 			}
+			ulaz2.close();
+			promijeni_stanje_sobe(sobe_niz, br_soba, pozicija_soba); //poziv funkcije koja mijenja stanje odabrane sobe
+			delete s;
+			delete[] sobe_niz;	
 		}
-		ulaz2.close();
-		promijeni_stanje_sobe(sobe_niz, br_soba, pozicija_soba);
-		delete s;
-		delete[] sobe_niz;	
-	}
-	else{
-		poruka(5);
-		return;
+		else{
+			poruka(5);
+			return;
+		}
 	}
 }
 //funkcija koja mijenja sve promjene rezervacija u datoteci
@@ -890,17 +943,24 @@ void azuriraj_rezervacije(Rezervacija *niz, int br_rezervacija, int pozicija, in
 	string linija;
 	ofstream izlaz("rezervacije.txt");
 	if(izlaz.is_open()){
+		izlaz<<"Kod\tBroj sobe\tUsername\tDatum prijave\tDatum odjave\tStanje"<<endl;
 		for(int i = 0; i<br_rezervacija; i++){
-			if(i == pozicija && izbor == 1){
-				izlaz<<niz[i].kod<<" "<<niz[i].broj_sobe<<" "<<niz[i].username<<" "<<niz[i].datumPrijave.dan<<" "<<niz[i].datumPrijave.mjesec<<" "<<niz[i].datumPrijave.godina<<" "
-					<<niz[i].datumOdjave.dan<<" "<<niz[i].datumOdjave.mjesec<<" "<<niz[i].datumOdjave.godina<<" "<<izbor<<endl;
+			if(i == pozicija && izbor == 1){ //ako je odabrana rezervacije prihvacena postavlja varijablu na vrijeddnost 1
+				izlaz<<niz[i].kod<<"\t"<<niz[i].broj_sobe<<"\t\t";
+				if(niz[i].username.size() >= 8) izlaz<<niz[i].username<<"\t";
+				else izlaz<<niz[i].username<<"\t\t";
+				izlaz<<niz[i].datumPrijave.dan<<" "<<niz[i].datumPrijave.mjesec<<" "<<niz[i].datumPrijave.godina<<"\t"
+					<<niz[i].datumOdjave.dan<<" "<<niz[i].datumOdjave.mjesec<<" "<<niz[i].datumOdjave.godina<<"\t"<<izbor<<endl;
 			}
-			else if(i == pozicija && izbor == 2){
+			else if(i == pozicija && izbor == 2){ //ako je odabrana rezervacije odbijena na tu liniju ispisuje "odbijeno"
 				izlaz << "odbijeno" << endl;
 			}
-			else{
-				izlaz<<niz[i].kod<<" "<<niz[i].broj_sobe<<" "<<niz[i].username<<" "<<niz[i].datumPrijave.dan<<" "<<niz[i].datumPrijave.mjesec<<" "<<niz[i].datumPrijave.godina<<" "
-					<<niz[i].datumOdjave.dan<<" "<<niz[i].datumOdjave.mjesec<<" "<<niz[i].datumOdjave.godina<<" "<<niz[i].stanje<<endl;
+			else{ //za sve ostale rezervacije upisuju se podaci koji su nepromjenjeni
+				izlaz<<niz[i].kod<<"\t"<<niz[i].broj_sobe<<"\t\t";
+				if(niz[i].username.size() >= 8) izlaz<<niz[i].username<<"\t";
+				else izlaz<<niz[i].username<<"\t\t";
+				izlaz<<niz[i].datumPrijave.dan<<" "<<niz[i].datumPrijave.mjesec<<" "<<niz[i].datumPrijave.godina<<"\t"
+					<<niz[i].datumOdjave.dan<<" "<<niz[i].datumOdjave.mjesec<<" "<<niz[i].datumOdjave.godina<<"\t"<<niz[i].stanje<<endl;
 			}
 		}
 	izlaz.close();	
@@ -911,10 +971,10 @@ void azuriraj_rezervacije(Rezervacija *niz, int br_rezervacija, int pozicija, in
 	}
 	ifstream ulaz("rezervacije.txt");
 	if(ulaz.is_open()){
-		ofstream novi_izlaz("azurirano.txt");
+		ofstream novi_izlaz("azurirano.txt"); //kreira se pomocna datoteka
 		if(novi_izlaz.is_open()){
 			while(getline(ulaz,linija)){
-				if(linija != "odbijeno"){
+				if(linija != "odbijeno"){ //svaka linija na kojoj pise "odbijeno" se preskace i podaci se dalje upisuju u datoteku
 					novi_izlaz << linija << endl;
 				}
 			}
@@ -925,8 +985,8 @@ void azuriraj_rezervacije(Rezervacija *niz, int br_rezervacija, int pozicija, in
 			return;
 		}
 	ulaz.close();
-	remove("rezervacije.txt");
-	rename("azurirano.txt","rezervacije.txt");
+	remove("rezervacije.txt"); //brise se originalna datoteka
+	rename("azurirano.txt","rezervacije.txt"); //mijenja se ime pomocne datoteke u originalno ime datoteke
 	}
 	else{
 		poruka(5);
@@ -938,12 +998,13 @@ void promijeni_stanje_sobe(Soba *sobe_niz, int br_soba, int soba_pozicija){
 	bool zauzeta = true;
 	ofstream izlaz("sobe.txt");
 	if(izlaz.is_open()){
+		izlaz<<"Broj sobe\tCijena(KM)\tVelicina\tStanje"<<endl;
 		for(int i = 0; i<br_soba; i++){
-			if(i == soba_pozicija){
-				izlaz << sobe_niz[i].brojSobe << " " << sobe_niz[i].cijena << " " << sobe_niz[i].velicina << " " << zauzeta << endl;	
+			if(i == soba_pozicija){ //za odabranu sobu mijenja stanje zauzetosti na 1
+				izlaz << sobe_niz[i].brojSobe << "\t\t" << sobe_niz[i].cijena << "\t\t" << sobe_niz[i].velicina << "\t\t" << zauzeta << endl;	
 			}
-			else{
-				izlaz << sobe_niz[i].brojSobe << " " << sobe_niz[i].cijena << " " << sobe_niz[i].velicina << " " << sobe_niz[i].slobodna << endl;
+			else{ //za sve ostale sobe upisuje nepromijenjene podatke
+				izlaz << sobe_niz[i].brojSobe << "\t\t" << sobe_niz[i].cijena << "\t\t" << sobe_niz[i].velicina << "\t\t" << sobe_niz[i].zauzeta << endl;
 			}
 		}
 	izlaz.close();
@@ -976,12 +1037,14 @@ void pretrazi_sobe(){
 	Soba *s = new Soba;
 	ifstream ulaz("sobe.txt");
 	if(ulaz.is_open()){
-		while(ulaz >> s->brojSobe >> s->cijena >> velicina_broj >> s->slobodna){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
+		while(ulaz >> s->brojSobe >> s->cijena >> velicina_broj >> s->zauzeta){
 			if(velicina_broj == 1) krevet = "jednokrevetna";
 			else if(velicina_broj == 2) krevet = "dvokrevetna";
 			else if(velicina_broj == 3) krevet = "trokrevetna";
 			else krevet = "apartman";
-			if(s->slobodna) stanje = "zauzeta";
+			if(s->zauzeta) stanje = "zauzeta";
 			else stanje = "slobodna";
 			if(pojam == krevet || pojam == stanje){
 				brojac++;
@@ -995,12 +1058,51 @@ void pretrazi_sobe(){
 		poruka(5);
 		return;
 	}
-	if(brojac == 0){
+	if(brojac == 0){ //ako nema sobe koja odgovara unesenom kriteriju ispisuje poruku i izlazi se iz funkcije
 		poruka(4);
 		return;
 	}
 	poruka(1);
 }
+//funkcija koja na osnovu unosenog username ispisuje sve aktivirane aktivnosti korisnika
+void ispis_dodatnih_aktivnosti(){
+	string unos;
+	int brojac = 0;
+	cout<<"Unesite username za pretragu: ";
+	cin>>unos;
+	dodatneAktivnosti *dA = new dodatneAktivnosti;
+	int aktivirano;
+	string temp;
+	poruka(1);
+	ifstream ulaz("dodatneAktivnosti.txt");
+	if(ulaz.is_open()){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
+		while(ulaz >> dA->username >> aktivirano >> dA->cijena){
+			if(aktivirano == 1) temp = "teretana";
+			else if(aktivirano == 2) temp = "bazen";
+			else if(aktivirano == 3) temp = "fitness";
+			else if(aktivirano == 4) temp = "masaza";
+			else temp = "sauna";
+			if(unos == dA->username){
+				brojac++;
+				cout<<"Aktivnost: "<<temp<<" | Cijena: "<<dA->cijena<<" KM"<<endl;
+			}
+		}
+		ulaz.close();
+		delete dA;
+	}
+	else{
+		poruka(5);
+		return;
+	}
+	if(brojac == 0){ //ako nema unesenog korisnika ili korisnik nema nijednu aktiviranu aktivnost ispisuje poruku i izlazi iz funckije
+		poruka(4);
+		return;
+	}
+	poruka(1);
+}
+//funkcija koja na osnovu unesenog broja sobe i nove cijene mijenja cijenu za tu sobu
 void uredi_cjenovnik(){
 	int broj;
 	float nova_cijena;
@@ -1009,6 +1111,12 @@ void uredi_cjenovnik(){
 	do{
 		cout<<"Unesite broj sobe kojoj zelite promijeniti cijenu: ";
 		cin>>broj;
+		if(!cin){
+			cin.clear();
+			cin.ignore(100, '\n');
+			poruka(3);
+			return;
+		}
 		if(broj < 1 || broj > br_soba){
 			poruka(3);
 			cout<<"Samo u intervalu 1 - "<<br_soba<<endl;
@@ -1018,6 +1126,12 @@ void uredi_cjenovnik(){
 	do{
 		cout<<"Unesite novu cijenu sobe: ";
 		cin>>nova_cijena;
+		if(!cin){
+			cin.clear();
+			cin.ignore(100, '\n');
+			poruka(3);
+			return;
+		}
 		if(nova_cijena < 50){
 			poruka(3);
 			cout<<"Samo cijene vece od 50 KM!"<<endl;
@@ -1028,21 +1142,24 @@ void uredi_cjenovnik(){
 	Soba *niz = new Soba[br_soba];
 	int br = 0;
 	int pozicija;
+	string linija;
 	ifstream ulaz("sobe.txt");
 	if(ulaz.is_open()){
-		while(ulaz >> s->brojSobe >> s->cijena >> velicina_broj >> s->slobodna){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
+		while(ulaz >> s->brojSobe >> s->cijena >> velicina_broj >> s->zauzeta){
 			if(velicina_broj == 1) s->velicina = jednokrevetna;
 			else if(velicina_broj == 2) s->velicina = dvokrevetna;
 			else if(velicina_broj == 3) s->velicina = trokrevetna;
 			else s->velicina = predsjednickiApartman;
-			niz[br] = *s;
+			niz[br] = *s; //sve sobe iz datoteke se smjestaju u niz
 			br++;
 			if(broj == s->brojSobe){
-				pozicija = br-1;
+				pozicija = br-1; //odredjuje se pozicija sobe kojoj se treba izmijeniti cijena
 			}
 		}
 		ulaz.close();
-		azuriraj_sobe(niz, br_soba, pozicija, nova_cijena);
+		azuriraj_sobe(niz, br_soba, pozicija, nova_cijena); //poziv funkcije koja ce promijeniti cijenu odabrane sobe
 		delete s;
 		cout<<"Uspjesno ste promijenili cijenu sobe!"<<endl;
 	}
@@ -1056,12 +1173,13 @@ void uredi_cjenovnik(){
 void azuriraj_sobe(Soba *niz, int br_soba, int pozicija, float nova_cijena){
 	ofstream izlaz("sobe.txt");
 	if(izlaz.is_open()){
+		izlaz<<"Broj sobe\tCijena(KM)\tVelicina\tStanje"<<endl;
 		for(int i = 0; i<br_soba; i++){
-			if(i == pozicija){
-				izlaz << niz[i].brojSobe << " " << nova_cijena << " " << niz[i].velicina << " " << niz[i].slobodna << endl;	
+			if(i == pozicija){ //za odabranu sobu upisuje se nova cijena
+				izlaz << niz[i].brojSobe << "\t\t" << nova_cijena << "\t\t" << niz[i].velicina << "\t\t" << niz[i].zauzeta << endl;	
 			}
-			else{
-				izlaz << niz[i].brojSobe << " " << niz[i].cijena << " " << niz[i].velicina << " " << niz[i].slobodna << endl;
+			else{ //za sve ostale sobe upisuju se nepromijenjeni podaci
+				izlaz << niz[i].brojSobe << "\t\t" << niz[i].cijena << "\t\t" << niz[i].velicina << "\t\t" << niz[i].zauzeta << endl;
 			}
 		}
 	izlaz.close();
@@ -1080,9 +1198,11 @@ void izdaj_racun(){
 	Racun *rac = new Racun;
 	ifstream ulaz0("racuni.txt");
 	if(ulaz0.is_open()){
+		linijaInfo.clear();
+		getline(ulaz0, linijaInfo);	
 		while(ulaz0 >> rac->id >> rac->username >> rac->iznos >> rac->placeno){
 			if(unos == rac->username && !rac->placeno){
-				platio = false;
+				platio = false; //provjera da li korisnik ima neplacenih racuna
 				break;
 			}
 		}
@@ -1090,7 +1210,7 @@ void izdaj_racun(){
 		delete rac;
 		if(!platio){
 			cout<<"Ne mozete izdati racun korisniku koji vec ima neplacen racun!"<<endl;
-			return;
+			return; //ako uneseni nije platio tekuci racun izlazi se iz funkcije
 		}
 	}
 	else{
@@ -1105,12 +1225,15 @@ void izdaj_racun(){
 	Rezervacija *r = new Rezervacija;
 	ifstream ulaz("rezervacije.txt");
 	if(ulaz.is_open()){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
 		while(ulaz >> r->kod >> r->broj_sobe >> r->username >> r->datumPrijave.dan >> r->datumPrijave.mjesec >> r->datumPrijave.godina
 			>> r->datumOdjave.dan >> r->datumOdjave.mjesec >> r->datumOdjave.godina >> stanje){
 			if(stanje == 0) r->stanje = cekanje;
 			else r->stanje = prihvaceno;
-			if(unos == r->username && r->stanje == prihvaceno){
+			if(unos == r->username && r->stanje == prihvaceno){ //ako se pronadje korisnik s unesenim usernameom i prihvacenom rezervacijom
 				postoji = true;
+				//svi podaci iz rezervacije.txt se smjestaju u pomocne varijable
 				br_sobe = r->broj_sobe;
 				d1->dan = r->datumPrijave.dan;
 				d1->mjesec = r->datumPrijave.mjesec;
@@ -1125,7 +1248,7 @@ void izdaj_racun(){
 		delete r;
 		if(!postoji){
 			cout<<"Ne postoji uneseni username ili korisnik nema prihvacenu rezervaciju!"<<endl;
-			return;
+			return; //izlazak iz funkcije ako nema korisnika sa unesenim usernameom ili prihvacenom rezervacijom
 		}
 	}
 	else{
@@ -1137,13 +1260,15 @@ void izdaj_racun(){
 	int velicina_broj;
 	ifstream ulaz2("sobe.txt");
 	if(ulaz2.is_open()){
-		while(ulaz2 >> s->brojSobe >> s->cijena >> velicina_broj >> s->slobodna){
+		linijaInfo.clear();
+		getline(ulaz2, linijaInfo);
+		while(ulaz2 >> s->brojSobe >> s->cijena >> velicina_broj >> s->zauzeta){
 			if(velicina_broj == 1) s->velicina = jednokrevetna;
 			else if(velicina_broj == 2) s->velicina = dvokrevetna;
 			else if(velicina_broj == 3) s->velicina = trokrevetna;
 			else s->velicina = predsjednickiApartman;
 			if(br_sobe == s->brojSobe){
-				cijena_sobe = s->cijena;
+				cijena_sobe = s->cijena; //smjestanje cijene sobe u pomocnu varijablu
 				break;
 			}
 		}
@@ -1159,6 +1284,8 @@ void izdaj_racun(){
 	int aktivirano;
 	ifstream ulaz3("dodatneAktivnosti.txt");
 	if(ulaz3.is_open()){
+		linijaInfo.clear();
+		getline(ulaz3, linijaInfo);
 		while(ulaz3 >> dA->username >> aktivirano >> dA->cijena){
 			if(aktivirano == 1) dA->aktivnost = teretana;
 			else if(aktivirano == 2) dA->aktivnost = bazen;
@@ -1166,7 +1293,7 @@ void izdaj_racun(){
 			else if(aktivirano == 4) dA->aktivnost = masaza;
 			else dA->aktivnost = sauna;
 			if(unos == dA->username){
-				aktivnosti_cijena += dA->cijena;
+				aktivnosti_cijena += dA->cijena; //racunanje cijene dodatnih aktivnosti i spremanje u pomocnu varijablu
 			}
 		}
 		ulaz3.close();
@@ -1177,93 +1304,90 @@ void izdaj_racun(){
 		return;
 	}
 	//------------------------------------------------------------------
-	int br_dana = izracunaj_dane(d1,d2);
-	float ukupna_cijena = (cijena_sobe + aktivnosti_cijena) * br_dana;
+	int br_dana = izracunaj_dane(d1,d2); //poziv funkcije za izracunavanje broja dana trajanja rezervacije
+	float ukupna_cijena = (cijena_sobe + aktivnosti_cijena) * br_dana; //cijena rezervacije za n-dana je zbir cijena sobe i aktivnosti x broj dana
 	float konacna_cijena;
 	cout<<"Uspjesno ste izdali racun korisniku: "<<unos<<endl;
 	cout<<"Podaci su spremljeni u datoteku racuni.txt..."<<endl;
 	delete d1;
 	delete d2;
-	if(br_dana > 5){
-		konacna_cijena = izracunaj_popust(ukupna_cijena,br_dana);
-		cout<<"Broj dana rezervacije je "<<br_dana<<", te korisnik ima aktiviran popust!"<<endl;
+	if(br_dana > 5 && br_dana < 15){ //ako korisnik ostaje izmedju 5-15 dana ima aktiviran popust 1.05% po danu
+		konacna_cijena = izracunaj_popust(ukupna_cijena,br_dana); //poziv REKURZIVNE funkcije koja izracunava popust
+		cout<<"Broj dana rezervacije je "<<br_dana<<", te korisnik ima aktiviran popust od 1.05% po danu!"<<endl;
+	}
+	else if(br_dana >= 15){ //ako ostaje duze od 15 dana onda ima popust od 15%
+		konacna_cijena -= konacna_cijena*15 / 100; //nova cijena postaje broj koji se oduzme racunanjem popusta od stare cijene
+		cout<<"Broj dana rezervacije je "<<br_dana<<", te korisnik ima aktiviran popust od 15%!"<<endl;
 	}
 	else{
-		konacna_cijena = ukupna_cijena;
+		konacna_cijena = ukupna_cijena; //konacna cijena je jednaka zbiru cijene sobe i cijene dodatnih aktivnosti
 		cout<<"Broj dana rezervacije je "<<br_dana<<", te korisnik nema aktiviran popust!"<<endl;
 	}
-	cout<<"Cijena sobe: "<<cijena_sobe*br_dana<<endl;
-	cout<<"Cijena dodatnih aktivnosti: "<<aktivnosti_cijena*br_dana<<endl;
-	cout<<"Ukupna cijena racuna: "<<ukupna_cijena<<" KM!"<<endl;
-	cout<<"Konacni racun iznosi: "<< fixed << setprecision(2) << konacna_cijena <<" KM!"<<endl;
+	cout<<"Cijena sobe: "<<fixed << setprecision(2)<<cijena_sobe*br_dana<<" KM"<<endl;
+	cout<<"Cijena dodatnih aktivnosti: "<<fixed << setprecision(2)<<aktivnosti_cijena*br_dana<<" KM"<<endl;
+	cout<<"Ukupna cijena racuna: "<<fixed << setprecision(2)<<ukupna_cijena<<" KM"<<endl;
+	cout<<"Konacni racun iznosi: "<< fixed << setprecision(2) << konacna_cijena <<" KM"<<endl;
+	cout.precision(0);
 	//------------------------------------------------------------------
 	bool placeno = false;
 	srand(time(NULL));
 	rand();
-	int temp = rand()%900+100;
+	int temp;
+	do{
+		temp = rand()%900+100; //generisanje slucajnog id-a za neki racun
+	}
+	while(id_provjera(temp)); //generisanje se vrsi sve dok se ne generise broj koji vec ne postoji u datoteci
 	ofstream izlaz("racuni.txt", ios::app);
 	if(izlaz.is_open()){
-		izlaz << temp << " " << unos << " " << fixed << setprecision(2) << konacna_cijena << " " << placeno << endl;
+		izlaz << temp << "\t";
+		if(unos.size() >= 8) izlaz << unos << "\t";
+		else izlaz << unos << "\t\t";
+		izlaz << fixed << setprecision(2) << konacna_cijena << "\t\t" << placeno << endl;
 	}
 	else{
 		poruka(5);
 		return;
 	}
 }
-//funkcija koja provjerava da li je godina prestupna
-bool prestupna(int godina) {
-	return (godina % 4 == 0) && (godina % 100 != 0 || godina % 400 == 0);
-}
-//funkcija koja racuna broj dana izmedju datuma prijava i datuma odjave
-int izracunaj_dane(Datum *d1, Datum *d2){
-	int br_dana_d1 = 0; 
-	int br_dana_d2 = 0; 
-	int razlika; 
-	int dani_u_mjesecu[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
-	for(int i=1; i<d1->godina; i++){
-		if(prestupna(i)) br_dana_d1 += 366;
-		else br_dana_d1 += 365;
-	}
-	for(int i=1; i<d1->mjesec; i++){
-		br_dana_d1 += dani_u_mjesecu[i-1];
-	}
-	br_dana_d1 += d1->dan;
-	for(int i=1; i<d2->godina; i++){
-		if(prestupna(i)) br_dana_d2 += 366;
-		else br_dana_d2 += 365;
-	}
-	for(int i=1; i<d2->mjesec; i++){
-		br_dana_d2 += dani_u_mjesecu[i-1];
-	}
-	br_dana_d2 += d2->dan;
-	razlika = br_dana_d2 - br_dana_d1;
-	return razlika; 
-}
-//REKURZIVNA FUNKCIJA koja racuna popust na cijenu
-float izracunaj_popust(float konacna_cijena, int br_dana){
-	if(br_dana == 0) return konacna_cijena;
-	else{
-		br_dana--;
-		konacna_cijena -= konacna_cijena*1.05 / 100;
-		izracunaj_popust(konacna_cijena,br_dana);
-	}
-}
-//funkcija koja ispisuje listu svih racuna iz datoteke
-void pregled_racuna(){
-	int brojac = 0;
-	poruka(1);
-	cout<<setw(5)<<"ID"<<setw(20)<<"Username"<<setw(15)<<"Iznos"<<setw(15)<<"Placeno"<<endl;
-	poruka(1);
-	Racun *r = new Racun;
+//funckija koja provjerava da li je vec postoji generisani ID racuna
+bool id_provjera(int broj){
+	Racun *rac = new Racun;
+	bool postoji = false;
 	ifstream ulaz("racuni.txt");
 	if(ulaz.is_open()){
-		while(ulaz >> r->id >> r->username >> r->iznos >> r->placeno){
-			brojac++;
-			if(r->placeno){
-				cout<<setw(5)<<r->id<<setw(18)<<r->username<<setw(18)<<r->iznos<<setw(12)<<"DA"<<endl;
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
+		while(ulaz >> rac->id >> rac->username >> rac->iznos >> rac->placeno){
+			if(broj == rac->id){
+				postoji = true;; //ako se pronadje racun s istim ID varijabla se postavlja na true
+				break;
 			}
-			else{
-				cout<<setw(5)<<r->id<<setw(18)<<r->username<<setw(18)<<r->iznos<<setw(12)<<"NE"<<endl;
+		}
+		ulaz.close();
+		delete rac;
+	}
+	else{
+		poruka(5);
+		return 0;
+	}
+	return postoji;
+}
+//funckija koja provjerava da li je vec postoji generisani kod rezervacije
+bool kod_provjera(int broj){
+	Rezervacija *r = new Rezervacija;
+	bool postoji = false;
+	int stanje;
+	ifstream ulaz("rezervacije.txt");
+	if(ulaz.is_open()){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
+		while(ulaz >> r->kod >> r->broj_sobe >> r->username >> r->datumPrijave.dan >> r->datumPrijave.mjesec >> r->datumPrijave.godina
+			>> r->datumOdjave.dan >> r->datumOdjave.mjesec >> r->datumOdjave.godina >> stanje){
+			if(stanje == 0) r->stanje = cekanje;
+			else r->stanje = prihvaceno;
+			if(broj == r->kod){ //ako se pronadje rezervacija s istim kodom varijabla se postavlja na true
+				postoji = true;
+				break;
 			}
 		}
 		ulaz.close();
@@ -1271,10 +1395,76 @@ void pregled_racuna(){
 	}
 	else{
 		poruka(5);
+		return 0;
+	}
+	return postoji;
+}
+//funkcija koja provjerava da li je godina prestupna
+bool prestupna(int godina) {
+	return (godina % 4 == 0) && (godina % 100 != 0 || godina % 400 == 0); 
+}
+//funkcija koja racuna broj dana izmedju datuma prijava i datuma odjave
+int izracunaj_dane(Datum *d1, Datum *d2){
+	int br_dana_d1 = 0; 
+	int br_dana_d2 = 0; 
+	int razlika; 
+	int dani_u_mjesecu[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; //broj dana za svaki mjesec
+	for(int i=1; i<d1->godina; i++){ //racunanje broja dana za godine prvog datuma
+		if(prestupna(i)) br_dana_d1 += 366;
+		else br_dana_d1 += 365;
+	}
+	for(int i=1; i<d1->mjesec; i++){ //racunanje broja dana za mjesece prvog datuma
+		br_dana_d1 += dani_u_mjesecu[i-1];
+	}
+	br_dana_d1 += d1->dan; //racunanje broja dana za dane prvog datuma
+	for(int i=1; i<d2->godina; i++){ //racunanje broja dana za godine drugog datuma
+		if(prestupna(i)) br_dana_d2 += 366;
+		else br_dana_d2 += 365;
+	}
+	for(int i=1; i<d2->mjesec; i++){ //racunanje broja dana za mjesece drugog datuma
+		br_dana_d2 += dani_u_mjesecu[i-1];
+	}
+	br_dana_d2 += d2->dan; //racunanje broja dana za dane drugog datuma
+	razlika = br_dana_d2 - br_dana_d1; //razlika broja dana izmedju dva datuma je broj dana trajanja rezervacije
+	return razlika; 
+}
+//REKURZIVNA FUNKCIJA koja racuna popust na cijenu
+float izracunaj_popust(float konacna_cijena, int br_dana){
+	if(br_dana == 0) return konacna_cijena; //kada funkcija dodje do 0 dana vraca konacnu cijenu
+	else{
+		br_dana--; //smanjivanje broja dana
+		konacna_cijena -= konacna_cijena*1.05 / 100; //nova cijena postaje broj koji se oduzme racunanjem popusta od stare cijene
+		izracunaj_popust(konacna_cijena,br_dana); //naredni poziv rekurzivne funkcije
+	}
+}
+//funkcija koja ispisuje listu svih racuna iz datoteke
+void pregled_racuna(){
+	int brojac = 0;
+	string stanje;
+	poruka(1);
+	cout<<setw(5)<<"ID"<<setw(20)<<"Username"<<setw(16)<<"Iznos (KM)"<<setw(15)<<"Placeno"<<endl;
+	poruka(1);
+	Racun *r = new Racun;
+	ifstream ulaz("racuni.txt");
+	if(ulaz.is_open()){
+		linijaInfo.clear();
+		getline(ulaz, linijaInfo);
+		while(ulaz >> r->id >> r->username >> r->iznos >> r->placeno){
+			brojac++;
+			if(r->placeno) stanje = "DA";
+			else stanje = "NE";
+			cout<<setw(5)<<r->id<<setw(18)<<r->username<<setw(18)<<fixed<<setprecision(2)<<r->iznos<<setw(12)<<stanje<<endl;
+		}
+		ulaz.close();
+		cout.precision(0);
+		delete r;
+	}
+	else{
+		poruka(5);
 		return;
 	}
-	if(brojac == 0){
-		poruka(4);
+	if(brojac == 0){ //ako nema nijednog racuna u datoteci ispisuje poruku i izlazi iz funkcije
+		poruka(4); 
 		return;
 	}
 	poruka(1);
@@ -1284,7 +1474,7 @@ void stanje_hotela(){
 	float hotel_racun;
 	ifstream ulaz("hotel.txt");
 	if(ulaz.is_open()){
-		ulaz >> hotel_racun;
+		ulaz >> hotel_racun; //smjestanje trenutnog novca na racunu hotela u pomocnu varijablu
 		ulaz.close();
 	}
 	else{
@@ -1300,16 +1490,18 @@ void stanje_hotela(){
 	int velicina_broj;
 	ifstream ulaz2("sobe.txt");
 	if(ulaz2.is_open()){
-		while(ulaz2 >> s->brojSobe >> s->cijena >> velicina_broj >> s->slobodna){
+		linijaInfo.clear();
+		getline(ulaz2, linijaInfo);
+		while(ulaz2 >> s->brojSobe >> s->cijena >> velicina_broj >> s->zauzeta){
 			if(velicina_broj == 1) s->velicina = jednokrevetna;
 			else if(velicina_broj == 2) s->velicina = dvokrevetna;
 			else if(velicina_broj == 3) s->velicina = trokrevetna;
 			else s->velicina = predsjednickiApartman;
-			if(s->slobodna){
-				br_zauzetih++;
+			if(s->zauzeta){
+				br_zauzetih++; //prebrojavanje zauzetih soba
 			}
 			else{
-				br_slobodnih++;
+				br_slobodnih++; //prebrojavanje slobodnih soba
 			}
 		}
 		ulaz2.close();
@@ -1336,8 +1528,11 @@ void stanje_hotela(){
 	string temp;
 	cout<<left<<setw(5)<<"ID"<<setw(15)<<"Ime"<<setw(20)<<"Prezime"<<setw(15)<<"Pozicija"<<setw(8)<<"Plata"<<endl;
 	poruka(1);
+	string linija;
 	ifstream ulaz3("radnici.txt");
 	if(ulaz3.is_open()){
+		linijaInfo.clear();
+		getline(ulaz3, linijaInfo);
 		while(ulaz3 >> r->id >> r->ime >> r->prezime >> pozicija >> r->plata){
 			if(pozicija == 1) temp = "recepcioner";
 			else if(pozicija == 2) temp = "cistac";
@@ -1361,7 +1556,7 @@ void isplati_plate(){
 	float hotel_racun;
 	ifstream ulaz("hotel.txt");
 	if(ulaz.is_open()){
-		ulaz >> hotel_racun;
+		ulaz >> hotel_racun; //smjestanje trenutnog novca na racunu hotela u pomocnu varijablu
 		ulaz.close();
 	}
 	else{
@@ -1373,8 +1568,10 @@ void isplati_plate(){
 	Radnik *r = new Radnik;
 	ifstream ulaz2("radnici.txt");
 	if(ulaz2.is_open()){
+		linijaInfo.clear();
+		getline(ulaz2, linijaInfo);
 		while(ulaz2 >> r->id >> r->ime >> r->prezime >> pozicija >> r->plata){
-			ukupna_plata += r->plata;
+			ukupna_plata += r->plata; //racunanje ukupne plate svih radnika i smjestanje u pomocnu varijablu
 		}
 		ulaz2.close();
 		delete r;
@@ -1383,7 +1580,7 @@ void isplati_plate(){
 		poruka(5);
 		return;
 	}
-	if(ukupna_plata > hotel_racun){
+	if(ukupna_plata > hotel_racun){ //ako na racunu nema dovoljno novca za placanje radnika izlazi se iz funkcije
 		cout<<"Nemate dovoljno novca na racunu hotela za isplatu plate radnicima!"<<endl;
 		return;
 	}
@@ -1395,7 +1592,7 @@ void isplati_plate(){
 	}
 	ofstream izlaz("hotel.txt");
 	if(izlaz.is_open()){
-		izlaz << hotel_racun - ukupna_plata;
+		izlaz << hotel_racun - ukupna_plata; //smjestanje novog stanja novca na racunu hotela u datoteku
 	}
 	else{
 		poruka(5);
@@ -1407,7 +1604,8 @@ int korisnikMenu(){
 	system("cls");
 	cout<<"\n\n\n\n\n\n\n\n";
 	poruka(1);
-	cout<<"\t\t\t\tKorisnicki menu"<<endl;
+	cout<<"\t\t\tKorisnicki menu"<<endl;
+	poruka(1);
 	cout << "\t\t1. Informacije o hotelu\n";
 	cout << "\t\t2. Pregled slobodnih soba\n";
 	cout << "\t\t3. Rezervacija sobe\n";
@@ -1431,6 +1629,7 @@ void hotelInfo(){
 	cout<<"\n\n\n\n\n\n\n\n";
 	poruka(1);
 	cout<<"\t\t\tINFORMACIJE O HOTELU\n";
+	poruka(1);
 	cout<<"\tSavrsen balans tradicije i modernih sadrzaja. \n"; 
 	cout<<"\tSmjesten u srcu Sarajeva, Hotelio predstavlja \n\tidealan izbor turistima i poslovnim gostima.\n"; 
 	cout<<"\tNa samo nekoliko koraka nalaze se sve glavne \n\tgradske atrakcije, znacajne kulturne i poslovne \n\tinstitucije, shopping zone i mnoge druge \n\tzanimljive lokacije."<<endl;
@@ -1487,7 +1686,9 @@ void pregledSlobodnihSoba(){
 	Soba *s=new Soba;
 	ifstream ispis("sobe.txt");
 	if(ispis.is_open()){
-		while(ispis>>s->brojSobe>>s->cijena>>velicinaBroj>>s->slobodna){
+		linijaInfo.clear();
+		getline(ispis, linijaInfo);
+		while(ispis>>s->brojSobe>>s->cijena>>velicinaBroj>>s->zauzeta){
 			if(velicinaBroj == 1) {
 				krevet = "jednokrevetna";
 			}
@@ -1500,7 +1701,7 @@ void pregledSlobodnihSoba(){
 			else {
 				krevet = "apartman";
 			}
-			if(s->slobodna) stanje = "zauzeta";
+			if(s->zauzeta) stanje = "zauzeta";
 			else stanje = "slobodna";
 			if(s->cijena>=min && s->cijena<=max){
 				switch(kriterij){
@@ -1542,7 +1743,7 @@ void rezervacijaSobe(string user){
 	brojSoba=prebroj_clanove("sobe.txt"); //poziva se funkcija za prebrojavanje clanova u nekoj datoteci i taj broj se smijesta u varijablu 
 	//unos broja sobe u rasponu 1-20 jer hotel ima 20 soba
 	do{
-		cout<<"Unesite broj sobe koju zelite rezervisati (nas hotel ima 20 soba): "; // bug ukoliko se unese npr "23 10"
+		cout<<"Unesite broj sobe koju zelite rezervisati (nas hotel ima 20 soba): ";
 		cin>>redniBroj;
 		if(!cin){
 			cin.clear();
@@ -1557,12 +1758,14 @@ void rezervacijaSobe(string user){
 	//ucitavanje datoteke sobe.txt kako bi se provjerilo da li je izabrana soba zauzeta
 	ifstream ispis("sobe.txt");
 	if(ispis.is_open()){
-		while(ispis>>s->brojSobe>>s->cijena>>velicinaBroj>>s->slobodna){
+		linijaInfo.clear();
+		getline(ispis, linijaInfo);
+		while(ispis>>s->brojSobe>>s->cijena>>velicinaBroj>>s->zauzeta){
 			if(velicinaBroj == 1) s->velicina = jednokrevetna;
 			else if(velicinaBroj == 2) s->velicina = dvokrevetna;
 			else if(velicinaBroj == 3) s->velicina = trokrevetna;
 			else s->velicina = predsjednickiApartman;	
-			if(redniBroj==s->brojSobe && s->slobodna){
+			if(redniBroj==s->brojSobe && s->zauzeta){
 				cout<<"Soba je zauzeta\n";
 				return;
 			}
@@ -1598,12 +1801,16 @@ void rezervacijaSobe(string user){
 	if(upis.is_open()){
 		srand(time(NULL));
 		rand();
-		r->kod=rand() %900+100; // (b-a+1) + a
-		upis<<r->kod<<" ";
-		upis<<redniBroj<<" ";
-		upis<<user<<" ";
-		upis<<datumPrijave->dan<<" "<<datumPrijave->mjesec<<" "<<datumPrijave->godina<<" ";
-		upis<<datumOdjave->dan<<" "<<datumOdjave->mjesec<<" "<<datumOdjave->godina<<" ";
+		do{
+			r->kod=rand()%900+100; // (b-a+1) + a
+		}
+		while(kod_provjera(r->kod)); //generisanje se vrsi sve dok se ne generise kod koji vec ne postoji u datoteci
+		upis<<r->kod<<"\t";
+		upis<<redniBroj<<"\t\t";
+		if(user.size() >= 8) upis<<user<<"\t";
+		else upis<<user<<"\t\t";
+		upis<<datumPrijave->dan<<" "<<datumPrijave->mjesec<<" "<<datumPrijave->godina<<"\t";
+		upis<<datumOdjave->dan<<" "<<datumOdjave->mjesec<<" "<<datumOdjave->godina<<"\t";
 		upis<<stanje<<endl;
 		cout<<"Uspjesno ste izvrsili rezervaciju sobe. Rezervacija ce biti prihvacena kroz nekoliko trenutaka."<<endl;
 	}
@@ -1648,6 +1855,8 @@ void rezervacijaDodatnihAktivnosti(string user){
 	//provjera da li korisnik ima prihvacenu rezervaciju, ukoliko ima, funkcija ce mu ispisati moguce dodatne aktivnosti
 	ifstream ispis("rezervacije.txt");
 	if(ispis.is_open()){
+		linijaInfo.clear();
+		getline(ispis, linijaInfo);
 		while(ispis>>r->kod>>r->broj_sobe>>r->username>>r->datumPrijave.dan>>r->datumPrijave.mjesec>>r->datumPrijave.godina>>
 				r->datumOdjave.dan>>r->datumOdjave.mjesec>>r->datumOdjave.godina>>stanjeRezervacije){
 			if(stanjeRezervacije==0) prihvaceno="cekanje";
@@ -1689,6 +1898,8 @@ void rezervacijaDodatnihAktivnosti(string user){
 	//provjera koja korisniku nece omoguciti da dva puta rezervise istu stvar
 	ifstream provjera("dodatneAktivnosti.txt");
 	if(provjera.is_open()){
+		linijaInfo.clear();
+		getline(provjera, linijaInfo);
 		while(provjera>>da->username>>aktivnost>>da->cijena){
 			if(aktivnost==1) da->aktivnost=teretana;
 			else if(aktivnost==2) da->aktivnost=bazen;
@@ -1711,32 +1922,37 @@ void rezervacijaDodatnihAktivnosti(string user){
 	if(upis.is_open()){
 		switch(redniBroj){
 			case 1:{
-				upis<<user<<" ";
-				upis<<1<<" ";
+				if(user.size() >= 8) upis<<user<<"\t";
+				else upis<<user<<"\t\t";
+				upis<<1<<"\t\t";
 				upis<<15<<endl;
 				break;
 			}
 			case 2:{
-				upis<<user<<" ";
-				upis<<2<<" ";
+				if(user.size() >= 8) upis<<user<<"\t";
+				else upis<<user<<"\t\t";
+				upis<<2<<"\t\t";
 				upis<<25<<endl;
 				break;
 			}
 			case 3:{
-				upis<<user<<" ";
-				upis<<3<<" ";
+				if(user.size() >= 8) upis<<user<<"\t";
+				else upis<<user<<"\t\t";
+				upis<<3<<"\t\t";
 				upis<<40<<endl;
 				break;
 			}
 			case 4:{
-				upis<<user<<" ";
-				upis<<4<<" ";
+				if(user.size() >= 8) upis<<user<<"\t";
+				else upis<<user<<"\t\t";
+				upis<<4<<"\t\t";
 				upis<<20<<endl;
 				break;
 			}
 			case 5:{
-				upis<<user<<" ";
-				upis<<5<<" ";
+				if(user.size() >= 8) upis<<user<<"\t";
+				else upis<<user<<"\t\t";
+				upis<<5<<"\t\t";
 				upis<<35<<endl;
 				break;
 			}
@@ -1771,6 +1987,8 @@ void platiRacun(string user){
 	ifstream ispisSoba("sobe.txt");
 	//smjestanje svih podataka u niz te dodjeljivanje vrijednosti varijablama koje ce se poslije koristiti
 	if(ispisRacuna.is_open()){
+		linijaInfo.clear();
+		getline(ispisRacuna, linijaInfo);
 		while(ispisRacuna>>rac->id>>rac->username>>rac->iznos>>rac->placeno){
 			racun1[pozicija]=*rac;
 			pozicija++;
@@ -1787,6 +2005,8 @@ void platiRacun(string user){
 	ispisRacuna.close();
 	//dodjeljivanje vrijednosti varijablama radi kasnijeg ispisa
 	if(ispisAktivnosti.is_open()){
+		linijaInfo.clear();
+		getline(ispisAktivnosti, linijaInfo);
 		while(ispisAktivnosti>>a->username>>dAktivnost>>a->cijena){
 			if(dAktivnost==1) akt="teretana";
 			else if(dAktivnost==2) akt="bazen";
@@ -1806,6 +2026,8 @@ void platiRacun(string user){
 	bool postoji=false;
 	//ispis informacija o rezervaciji
 	if(ispisRezervacije.is_open()){
+		linijaInfo.clear();
+		getline(ispisRezervacije, linijaInfo);
 		while(ispisRezervacije>>r->kod>>r->broj_sobe>>r->username>>r->datumPrijave.dan>>r->datumPrijave.mjesec>>r->datumPrijave.godina>>
 			  r->datumOdjave.dan>>r->datumOdjave.mjesec>>r->datumOdjave.godina>>stanjeRezervacije){
 			if(stanjeRezervacije==0) r->stanje=cekanje;
@@ -1842,7 +2064,9 @@ void platiRacun(string user){
 	}
 	//smjestanje podataka iz datoteke sobe.txt u niz
 	if(ispisSoba.is_open()){
-		while(ispisSoba>>s->brojSobe>>s->cijena>>velicina>>s->slobodna){
+		linijaInfo.clear();
+		getline(ispisSoba, linijaInfo);
+		while(ispisSoba>>s->brojSobe>>s->cijena>>velicina>>s->zauzeta){
 			if(velicina == 1) s->velicina = jednokrevetna;
 			else if(velicina == 2) s->velicina = dvokrevetna;
 			else if(velicina == 3) s->velicina = trokrevetna;
@@ -1896,7 +2120,7 @@ void platiRacun(string user){
 		//promjena stanja sobe iz zauzeta u slobodna ukoliko je korisnik platio racun; pretpostavljamo da se racun placa kada istekne rezervacija
 		for(int j=0;j<brClanovaSobe;j++){
 			if(brojSobe==sobe[j].brojSobe){
-				sobe[j].slobodna=0;
+				sobe[j].zauzeta=0;
 			}
 		}
 	}
@@ -1933,8 +2157,12 @@ void platiRacun(string user){
 		//promjena stanja u datoteci racuni.txt; ukoliko je racun placen, mijenja stanje racuna iz neplacen u placen
 		if(promjenaStanjaRacuni.is_open()){
 			if(korisnik==user){
+				promjenaStanjaRacuni<<"ID\tUsername\tIznos(KM)\tPlaceno"<<endl;
 				for(int i=0;i<brClanova;i++){
-					promjenaStanjaRacuni<<racun1[i].id<<" "<<racun1[i].username<<" "<<racun1[i].iznos<<" "<<racun1[i].placeno<<endl;
+					promjenaStanjaRacuni<<racun1[i].id<<"\t";
+					if(racun1[i].username.size() >= 8) promjenaStanjaRacuni<<racun1[i].username<<"\t";
+					else promjenaStanjaRacuni<<racun1[i].username<<"\t\t";
+					promjenaStanjaRacuni<<racun1[i].iznos<<"\t\t"<<racun1[i].placeno<<endl;
 				}
 			}
 		}
@@ -1946,8 +2174,9 @@ void platiRacun(string user){
 		//promjena stanja u datoteci sobe.txt; ukoliko je racun placen, mijenja se stanje racuna iz zauzeta u slobodna
 		ofstream promjenaStanjaSobe("sobe.txt");
 		if(promjenaStanjaSobe.is_open()){
+			promjenaStanjaSobe<<"Broj sobe\tCijena(KM)\tVelicina\tStanje"<<endl;
 			for(int j=0;j<brClanovaSobe;j++){
-					promjenaStanjaSobe<<sobe[j].brojSobe<<" "<<sobe[j].cijena<<" "<<sobe[j].velicina<<" "<<sobe[j].slobodna<<endl;
+					promjenaStanjaSobe<<sobe[j].brojSobe<<"\t\t"<<sobe[j].cijena<<"\t\t"<<sobe[j].velicina<<"\t\t"<<sobe[j].zauzeta<<endl;
 			}
 		}
 	}
@@ -1961,6 +2190,8 @@ void platiRacun(string user){
 	int pom;
 	ifstream brisanjeRezervacija("rezervacije.txt");
 	if(brisanjeRezervacija.is_open()){
+		linijaInfo.clear();
+		getline(brisanjeRezervacija, linijaInfo);
 		while(brisanjeRezervacija>>bris->kod>>bris->broj_sobe>>bris->username>>bris->datumPrijave.dan>>bris->datumPrijave.mjesec>>bris->datumPrijave.godina>>
 			  bris->datumOdjave.dan>>bris->datumOdjave.mjesec>>bris->datumOdjave.godina>>rezervacijaStanje){
 			if(rezervacijaStanje == 0) bris->stanje=cekanje;
@@ -1987,6 +2218,8 @@ void platiRacun(string user){
 	int dodatnaAktivnostEnum;
 	ifstream brisanjeDodatneAktivnosti("dodatneAktivnosti.txt");
 	if(brisanjeDodatneAktivnosti.is_open()){
+		linijaInfo.clear();
+		getline(brisanjeDodatneAktivnosti, linijaInfo);
 		while(brisanjeDodatneAktivnosti>>dodatneA->username>>dodatnaAktivnostEnum>>dodatneA->cijena){
 			if(dodatnaAktivnostEnum==1) dodatneA->aktivnost=teretana;
 			else if(dodatnaAktivnostEnum==2) dodatneA->aktivnost=bazen;
@@ -2019,13 +2252,17 @@ void brisanjeRezervacije(Rezervacija* niz, int br_rezervacija, int pozicija){
 	string linija;
 	ofstream izlaz("rezervacije.txt");
 	if(izlaz.is_open()){
+		izlaz<<"Kod\tBroj sobe\tUsername\tDatum prijave\tDatum odjave\tStanje"<<endl;
 		for(int i = 0; i<br_rezervacija; i++){
 			if(i == pozicija){  //kad pronadje dati argument u tu liniju ispise izbrisano
 				izlaz << "obrisano" << endl;
 			}
 			else{ //u suprotnom nista ne radi
-				izlaz<<niz[i].kod<<" "<<niz[i].broj_sobe<<" "<<niz[i].username<<" "<<niz[i].datumPrijave.dan<<" "<<niz[i].datumPrijave.mjesec<<" "<<niz[i].datumPrijave.godina<<" "
-					<<niz[i].datumOdjave.dan<<" "<<niz[i].datumOdjave.mjesec<<" "<<niz[i].datumOdjave.godina<<" "<<niz[i].stanje<<endl;
+				izlaz<<niz[i].kod<<"\t"<<niz[i].broj_sobe<<"\t\t";
+				if(niz[i].username.size() >= 8) izlaz<<niz[i].username<<"\t";
+				else izlaz<<niz[i].username<<"\t";
+				izlaz<<niz[i].datumPrijave.dan<<" "<<niz[i].datumPrijave.mjesec<<" "<<niz[i].datumPrijave.godina<<"\t"
+					<<niz[i].datumOdjave.dan<<" "<<niz[i].datumOdjave.mjesec<<" "<<niz[i].datumOdjave.godina<<"\t"<<niz[i].stanje<<endl;
 			}
 		}
 	izlaz.close();	
@@ -2063,12 +2300,15 @@ void aktivnostBrisanje(dodatneAktivnosti* niz, int br_dodatnihAktivnosti, string
 	string linija;
 	ofstream izlaz("dodatneAktivnosti.txt");
 	if(izlaz.is_open()){
+		izlaz<<"Username\tAktivnost\tCijena"<<endl;
 		for(int i = 0; i<br_dodatnihAktivnosti; i++){
 			if(niz[i].username==user){
 				izlaz << "obrisano" << endl;
 			}
 			else{
-				izlaz<<niz[i].username<<" "<<niz[i].aktivnost<<" "<<niz[i].cijena<<endl;
+				if(niz[i].username.size() >= 8) izlaz<<niz[i].username<<"\t";
+				else izlaz<<niz[i].username<<"\t\t";
+				izlaz<<niz[i].aktivnost<<"\t\t"<<niz[i].cijena<<endl;
 			}
 		}
 	izlaz.close();	
