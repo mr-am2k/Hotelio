@@ -1,3 +1,2 @@
-Muamer Alickovic muski am2k bijelodugme
-Helena Ilic zenski helena mehomeho
-Ajdin Bukvic muski toreno exeexeexe
+Ime		Prezime		Spol	Username	Sifra
+Ajdin		Bukvic		muski	toreno		12345678
