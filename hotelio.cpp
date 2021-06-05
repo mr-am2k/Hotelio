@@ -556,7 +556,7 @@ void registracija() {
 		br=8;
 		do {
 			if(br<8) {
-				cout<<"[GRESKA] Unijeli broj karaktera za sifru nije zadovoljen!!!"<<endl;
+				cout<<"[GRESKA] Uneseni broj karaktera za sifru nije zadovoljen!!!"<<endl;
 				Sleep(900);
 				system("cls");
 				cout<<"Unesite ime (dozvoljena su samo velika i mala slova): ";
