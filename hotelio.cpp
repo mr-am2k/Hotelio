@@ -1,16 +1,16 @@
 /*||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||							    								||
-||		Naziv projekta: Hotelio			    					||
-||		Zavrsni projekat iz predmeta:	       	    			||
-||		Napredne tehnike programiranja              			||
-||		Mentor: v. as. mr. Edin Tabak		    				||
-||			Autori:		 		    							||
-||				Muamer Alickovic            					||
-||				Ajdin Bukvic	            					||
-||				Emir Zambakovic             					||
-||							    								||
-|| 			� 2021                              			   ||
-||							    								||		
+||							    	||
+||		Naziv projekta: Hotelio			    	||
+||		Zavrsni projekat iz predmeta:	       	        ||
+||		Napredne tehnike programiranja              	||
+||		Mentor: v. as. mr. Edin Tabak		    	||
+||			Autori:		 		    	||
+||				Muamer Alickovic                ||
+||				Ajdin Bukvic	            	||
+||				Emir Zambakovic                 ||
+||							    	||
+|| 			� 2021                                 ||	
+||							    	||		
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||*/
 
 //-------------------- >>> BIBLIOTEKE <<< ---------------------
